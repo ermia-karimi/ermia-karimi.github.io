@@ -96,7 +96,34 @@ function preparePDFButton() {
 }
 
 
-function createPDF() {
+// function createPDF() {
+//     const element = document.getElementById("content");
+
+//     const opt = {
+//         margin: 0.6,
+//         filename: "nokta.pdf",
+//         html2canvas: { scale: 2 },
+//         pagebreak: { mode: ["avoid-all", "css"] },
+//         jsPDF: { unit: "in", format: "a4", orientation: "portrait" }
+//     };
+
+//     html2pdf()
+//         .set(opt)
+//         .from(element)
+//         .outputPdf("blob")
+//         .then(blob => {
+//             const blobUrl = URL.createObjectURL(blob);
+
+//             // باز شدن با PDF Viewer یا Chrome
+//             window.open(blobUrl, "_blank");
+//         });
+// }
+
+
+import { Filesystem, Directory } from '@capacitor/filesystem';
+import { Browser } from '@capacitor/browser';
+
+async function createPDF() {
     const element = document.getElementById("content");
 
     const opt = {
@@ -107,17 +134,33 @@ function createPDF() {
         jsPDF: { unit: "in", format: "a4", orientation: "portrait" }
     };
 
-    html2pdf()
-        .set(opt)
-        .from(element)
-        .outputPdf("blob")
-        .then(blob => {
-            const blobUrl = URL.createObjectURL(blob);
+    const blob = await html2pdf().set(opt).from(element).outputPdf("blob");
 
-            // باز شدن با PDF Viewer یا Chrome
-            window.open(blobUrl, "_blank");
-        });
+    // blob → base64
+    const base64 = await blobToBase64(blob);
+
+    // ذخیره روی دیوایس
+    const file = await Filesystem.writeFile({
+        path: "nokta.pdf",
+        data: base64,
+        directory: Directory.Documents,
+        recursive: true
+    });
+
+    // باز کردن با PDF Viewer / Chrome
+    await Browser.open({
+        url: file.uri
+    });
 }
+
+function blobToBase64(blob) {
+    return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result.split(',')[1]);
+        reader.readAsDataURL(blob);
+    });
+}
+
 
 
 
