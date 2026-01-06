@@ -90,15 +90,11 @@ function goBack() {
 
 /* ---------- PDF ---------- */
 function preparePDFButton() {
-    pdfBtn.disabled = true;
-    pdfBtn.innerText = "در حال آماده‌سازی PDF...";
-
-    setTimeout(() => {
-        pdfBtn.disabled = false;
-        pdfBtn.innerText = "اشتراک PDF";
-        pdfBtn.onclick = createPDF;
-    }, 20000); // 20 ثانیه
+    pdfBtn.disabled = false;
+    pdfBtn.innerText = "باز کردن PDF";
+    pdfBtn.onclick = createPDF;
 }
+
 
 function createPDF() {
     const element = document.getElementById("content");
@@ -111,14 +107,18 @@ function createPDF() {
         jsPDF: { unit: "in", format: "a4", orientation: "portrait" }
     };
 
-    html2pdf().set(opt).from(element).outputPdf("blob").then(blob => {
-        const file = new File([blob], "nokta.pdf", { type: "application/pdf" });
-        if (navigator.canShare && navigator.canShare({ files: [file] })) {
-            navigator.share({ files: [file] }).catch(() => { });
-        } else {
-            html2pdf().set(opt).from(element).save();
-        }
-    });
+    html2pdf()
+        .set(opt)
+        .from(element)
+        .outputPdf("blob")
+        .then(blob => {
+            const blobUrl = URL.createObjectURL(blob);
+
+            // باز شدن با PDF Viewer یا Chrome
+            window.open(blobUrl, "_blank");
+        });
+}
+  });
 }
 
 
@@ -127,11 +127,11 @@ function createPDF() {
 
 
 
-// ---------- Service Worker ----------
-if ('serviceWorker' in navigator) {
-    window.addEventListener('load', () => {
-        navigator.serviceWorker.register('service-worker.js')
-            .then(reg => console.log('Service Worker registered:', reg))
-            .catch(err => console.error('Service Worker registration failed:', err));
-    });
-}
+// // ---------- Service Worker ----------
+// if ('serviceWorker' in navigator) {
+//     window.addEventListener('load', () => {
+//         navigator.serviceWorker.register('service-worker.js')
+//             .then(reg => console.log('Service Worker registered:', reg))
+//             .catch(err => console.error('Service Worker registration failed:', err));
+//     });
+// }
