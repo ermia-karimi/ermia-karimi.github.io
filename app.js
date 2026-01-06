@@ -118,8 +118,6 @@ function createPDF() {
             window.open(blobUrl, "_blank");
         });
 }
-  });
-}
 
 
 
